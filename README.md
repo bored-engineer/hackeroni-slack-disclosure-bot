@@ -1,4 +1,4 @@
-# hackeroni-slack-disclosure-bot
+# Hackeroni Slack Public Disclosure Bot
 A [Slack](https://slack.com) bot that posts a message everytime a [HackerOne](https://hackerone.com) report is publicly disclosed. The messages look like this:
 
 ![message](message.png?raw=true "Message")
