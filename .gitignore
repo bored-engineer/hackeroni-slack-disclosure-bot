@@ -24,4 +24,4 @@ _testmain.go
 *.prof
 
 vendor/
-./hackeroni-slack-disclosure-bot
+/hackeroni-slack-disclosure-bot
