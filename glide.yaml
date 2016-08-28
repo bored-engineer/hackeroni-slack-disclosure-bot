@@ -1,0 +1,6 @@
+package: github.com/bored-engineer/hackeroni-slack-disclosure-bot
+import:
+- package: github.com/bored-engineer/hackeroni
+  subpackages:
+  - legacy
+- package: github.com/bored-engineer/slack-incoming-webhooks
