@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Track the time to post reports after (starting at launch time)
-	lastKnownReport := time.Now().Add(time.Hour * -5)
+	lastKnownReport := time.Now()
 
 	// Poll for new hacktivity every 2 minutes
     for range time.Tick(2 * time.Minute) {
