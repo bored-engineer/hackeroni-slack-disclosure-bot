@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Track the time to post reports after (starting at launch time)
-	lastKnownReport := time.Now()
+	lastKnownReport := time.Now().UTC()
 
 	// Poll for new hacktivity every 2 minutes
     for range time.Tick(2 * time.Minute) {
@@ -49,9 +49,10 @@ PageLoop:
 			}
 
 			// Add every new report
-			for len, report := range reports {
-				if report.LatestDisclosableActivityAt.Before(lastKnownReport) {
-					allReports = append(allReports, reports[0:len]...)
+			for idx, report := range reports {
+				reportTime := report.LatestDisclosableActivityAt.Time
+				if reportTime.Before(lastKnownReport) || reportTime.Equal(lastKnownReport){
+					allReports = append(allReports, reports[0:idx]...)
 					break PageLoop
 				}
 			}
