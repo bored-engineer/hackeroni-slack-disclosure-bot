@@ -1,5 +1,5 @@
-hash: 4ff068cf42392f00e1b34950c49a015f90cc44ab9093938047ac6cae9032d7ba
-updated: 2016-08-27T21:16:34.905848655-07:00
+hash: 2eac225c87efdbe699451fdaf818ae16c28cd7f0c8c0a74b135c44f5e3bdcd61
+updated: 2016-09-01T21:01:12.37571722-05:00
 imports:
 - name: github.com/bored-engineer/hackeroni
   version: bd9a89c189e2800a25912b27566202156733b91d
@@ -11,4 +11,6 @@ imports:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
   - query
+- name: github.com/robmccoll/mitlru
+  version: 0b9a155754fc02f6a489a3cd921e664d7117b97b
 testImports: []

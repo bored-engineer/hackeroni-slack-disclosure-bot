@@ -1,13 +1,14 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	hackeroni "github.com/bored-engineer/hackeroni/legacy"
 	slack "github.com/bored-engineer/slack-incoming-webhooks"
+	"github.com/robmccoll/mitlru"
 )
 
 func main() {
@@ -26,20 +27,27 @@ func main() {
 		log.Fatalf("client.Team.Get failed: %v", err)
 	}
 
-	// Track the time to post reports after (starting at launch time)
-	lastKnownReport := time.Now().UTC()
+	// The interval to refresh reports
+	interval := 2 * time.Minute
+	window := 2 * time.Minute
 
-	// Poll for new hacktivity every 2 minutes
-    for range time.Tick(2 * time.Minute) {
+	// Hold a LRU cache of report IDs (100 should be fine)
+	cache := mitlru.NewTTLRUCache(100, interval+window)
 
-    	// List all disclosed Hacktivity since last check starting at page 1
-    	opts := hackeroni.HacktivityListOptions{
-			Filter: hackeroni.HacktivityFilterDisclosed,
+	// Poll for new hacktivity every interval
+	for range time.Tick(interval) {
+
+		// Look for all activity since now minus the window
+		updatedSince := time.Now().UTC().Add(-window)
+
+		// List all disclosed Hacktivity since last check starting at page 1
+		opts := hackeroni.HacktivityListOptions{
+			Filter:   hackeroni.HacktivityFilterDisclosed,
 			SortType: hackeroni.HacktivitySortTypeLatestDisclosableActivityAt,
-			Page: 1,
+			Page:     1,
 		}
 		var allReports []*hackeroni.Report
-PageLoop:
+	PageLoop:
 		for {
 			// Actually list
 			reports, _, err := client.Hacktivity.List(opts)
@@ -51,7 +59,7 @@ PageLoop:
 			// Add every new report
 			for idx, report := range reports {
 				reportTime := report.LatestDisclosableActivityAt.Time
-				if reportTime.Before(lastKnownReport) || reportTime.Equal(lastKnownReport){
+				if reportTime.Before(updatedSince) {
 					allReports = append(allReports, reports[0:idx]...)
 					break PageLoop
 				}
@@ -61,13 +69,14 @@ PageLoop:
 			// Paginate
 			opts.Page += 1
 		}
-		
+
 		// Loop each report
-ReportLoop:
-		for idx, report := range allReports {
-			// If first report, update last known
-			if idx == 0 {
-				lastKnownReport = report.LatestDisclosableActivityAt.Time
+	ReportLoop:
+		for _, report := range allReports {
+			// Check if we've seen the report already, if so skip it
+			_, seen := cache.Get(*report.ID)
+			if seen {
+				continue
 			}
 			// Retrieve the full report
 			fullReport, _, err := client.Report.Get(*report.ID)
@@ -85,13 +94,13 @@ ReportLoop:
 
 			// Build the message attachment
 			attachment := slack.Attachment{
-				Fallback: *report.URL,
-				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name), 
+				Fallback:   *report.URL,
+				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
 				AuthorLink: *report.Reporter.URL,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
-				Title: fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
-				TitleLink: *report.URL,
-				Footer: "HackerOne Disclosure Bot",
+				Title:      fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
+				TitleLink:  *report.URL,
+				Footer:     "HackerOne Disclosure Bot",
 				FooterIcon: *team.ProfilePictureURLs.Best(),
 			}
 
@@ -112,7 +121,7 @@ ReportLoop:
 			}
 
 			// Set the attachment color based on the report state (extracted from CSS)
-			switch (*report.Substate) {
+			switch *report.Substate {
 			case hackeroni.ReportStateNew:
 				attachment.Color = "#8e44ad"
 			case hackeroni.ReportStateTriaged:
@@ -145,15 +154,18 @@ ReportLoop:
 
 			// Post the actual message
 			err = api.Post(&slack.Payload{
-				Username: fmt.Sprintf("%s Disclosed", *report.Team.Profile.Name),
-				IconURL: *report.Team.ProfilePictureURLs.Best(),
+				Username:    fmt.Sprintf("%s Disclosed", *report.Team.Profile.Name),
+				IconURL:     *report.Team.ProfilePictureURLs.Best(),
 				Attachments: []*slack.Attachment{&attachment},
 			})
 			if err != nil {
 				log.Printf("api.Post failed: %v", err)
 				continue ReportLoop
 			}
+
+			// Add to cache
+			cache.Add(*report.ID, true)
 		}
-    }
-	
+	}
+
 }

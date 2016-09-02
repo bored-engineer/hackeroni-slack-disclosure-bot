@@ -4,3 +4,4 @@ import:
   subpackages:
   - legacy
 - package: github.com/bored-engineer/slack-incoming-webhooks
+- package: github.com/robmccoll/mitlru
