@@ -1,5 +1,5 @@
 hash: 2eac225c87efdbe699451fdaf818ae16c28cd7f0c8c0a74b135c44f5e3bdcd61
-updated: 2016-09-01T21:01:12.37571722-05:00
+updated: 2016-10-25T22:42:05.844025639-07:00
 imports:
 - name: github.com/bored-engineer/hackeroni
   version: bd9a89c189e2800a25912b27566202156733b91d
@@ -12,5 +12,7 @@ imports:
   subpackages:
   - query
 - name: github.com/robmccoll/mitlru
-  version: 0b9a155754fc02f6a489a3cd921e664d7117b97b
+  version: 2ba16933125f6276605a8db0b119419073ee2f20
+  subpackages:
+  - list
 testImports: []
