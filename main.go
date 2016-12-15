@@ -94,12 +94,12 @@ func main() {
 
 			// Build the message attachment
 			attachment := slack.Attachment{
-				Fallback:   *report.URL,
+				Fallback:   fmt.Sprintf("\"%s\" - %s", *report.Title, *fullReport.URL),
 				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
 				AuthorLink: *report.Reporter.URL,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
 				Title:      fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
-				TitleLink:  *report.URL,
+				TitleLink:  *fullReport.URL,
 				Footer:     "HackerOne Disclosure Bot",
 				FooterIcon: *team.ProfilePictureURLs.Best(),
 			}
