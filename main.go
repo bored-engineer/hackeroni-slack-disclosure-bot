@@ -96,7 +96,7 @@ func main() {
 			attachment := slack.Attachment{
 				Fallback:   fmt.Sprintf("\"%s\" - %s", *report.Title, *fullReport.URL),
 				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
-				AuthorLink: *report.Reporter.URL,
+				AuthorLink: *reporter.URL,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
 				Title:      fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
 				TitleLink:  *fullReport.URL,
