@@ -130,6 +130,7 @@ func main() {
 				TitleLink:  reportLink,
 				Footer:     "HackerOne Disclosure Bot",
 				FooterIcon: *team.ProfilePictureURLs.Best(),
+				MarkdownIn: []string{"text", "pretext"},
 			}
 
 			// Add the authors name if we have it
