@@ -123,13 +123,18 @@ func main() {
 
 			// Build the message attachment
 			attachment := slack.Attachment{
-				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
+				AuthorName: *report.Reporter.Username,
 				AuthorLink: authorLink,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
 				Title:      fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
 				TitleLink:  reportLink,
 				Footer:     "HackerOne Disclosure Bot",
 				FooterIcon: *team.ProfilePictureURLs.Best(),
+			}
+
+			// Add the authors name if we have it
+			if reporter.Name != nil && *reporter.Name != "" {
+				attachment.AuthorName += fmt.Sprintf(" (%s)", *reporter.Name)
 			}
 
 			// Loop each summary and add the researchers's summary if it exists
@@ -178,7 +183,7 @@ func main() {
 
 			// If the report has a severity, add it
 			if severity != "" {
-				attachment.Fallback = fmt.Sprintf("%s - %s", fallback, severity)
+				attachment.Fallback = fmt.Sprintf("%s - %s", attachment.Fallback, severity)
 				attachment.AddField(&slack.Field{
 					Title: "Severity",
 					Value: severity,
