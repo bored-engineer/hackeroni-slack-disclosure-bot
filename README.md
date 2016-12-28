@@ -8,7 +8,7 @@ The bot relies on [uber-go/hackeroni](https://github.com/uber-go/hackeroni) for 
 
 The bot's dependancies can be installed via [glide](https://glide.sh) and built using the following commands:
 ```shell
-glide update
+glide install
 go build
 ```
 
