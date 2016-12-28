@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"net/url"
 
 	hackeroni "github.com/bored-engineer/hackeroni/legacy"
 	slack "github.com/bored-engineer/slack-incoming-webhooks"
@@ -21,7 +22,7 @@ func main() {
 	// Create a new HackerOne client (legacy)
 	client := hackeroni.NewClient(nil)
 
-	// We need the HackerOne icon so lookup that team (named "security")
+	// We need the HackerOne icon so lookup the H1 team (named "security")
 	team, _, err := client.Team.Get("security")
 	if err != nil {
 		log.Fatalf("client.Team.Get failed: %v", err)
@@ -78,6 +79,7 @@ func main() {
 			if seen {
 				continue
 			}
+
 			// Retrieve the full report
 			fullReport, _, err := client.Report.Get(*report.ID)
 			if err != nil {
@@ -92,14 +94,28 @@ func main() {
 				continue ReportLoop
 			}
 
+			// Resolve the relative URLs
+			authorRelativeLink, err := url.Parse(*report.Reporter.URL)
+			if err != nil {
+				log.Printf("url.Parse failed: %v", err)
+				continue ReportLoop
+			}
+			authorLink := client.BaseURL.ResolveReference(authorRelativeLink).String()
+			reportRelativeLink, err := url.Parse(*report.URL)
+			if err != nil {
+				log.Printf("url.Parse failed: %v", err)
+				continue ReportLoop
+			}
+			reportLink := client.BaseURL.ResolveReference(reportRelativeLink).String()
+
 			// Build the message attachment
 			attachment := slack.Attachment{
-				Fallback:   fmt.Sprintf("\"%s\" - %s", *report.Title, *fullReport.URL),
+				Fallback:   fmt.Sprintf("\"%s\" - %s", *report.Title, reportLink),
 				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
-				AuthorLink: *reporter.URL,
+				AuthorLink: authorLink,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
 				Title:      fmt.Sprintf("Report %d: %s", *report.ID, *report.Title),
-				TitleLink:  *fullReport.URL,
+				TitleLink:  reportLink,
 				Footer:     "HackerOne Disclosure Bot",
 				FooterIcon: *team.ProfilePictureURLs.Best(),
 			}
@@ -143,6 +159,34 @@ func main() {
 				attachment.AddField(&slack.Field{
 					Title: "Bounty",
 					Value: *fullReport.FormattedBounty,
+					Short: true,
+				})
+			}
+
+			// If the report has a severity, add it
+			switch *report.SeverityRating {
+			case hackeroni.ReportSeverityLow:
+				attachment.AddField(&slack.Field{
+					Title: "Severity",
+					Value: "Low",
+					Short: true,
+				})
+			case hackeroni.ReportSeverityMedium:
+				attachment.AddField(&slack.Field{
+					Title: "Severity",
+					Value: "Medium",
+					Short: true,
+				})
+			case hackeroni.ReportSeverityHigh:
+				attachment.AddField(&slack.Field{
+					Title: "Severity",
+					Value: "High",
+					Short: true,
+				})
+			case hackeroni.ReportSeverityCritical:
+				attachment.AddField(&slack.Field{
+					Title: "Severity",
+					Value: "Critical",
 					Short: true,
 				})
 			}
