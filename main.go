@@ -12,6 +12,13 @@ import (
 	"github.com/robmccoll/mitlru"
 )
 
+// Helper function to reverse a slice of reports
+func reverse(reports []*hackeroni.Report) {
+	for i, j := 0, len(reports)-1; i < j; i, j = i+1, j-1 {
+		reports[i], reports[j] = reports[j], reports[i]
+	}
+}
+
 func main() {
 
 	// Setup the Slack client
@@ -70,6 +77,9 @@ func main() {
 			// Paginate
 			opts.Page += 1
 		}
+
+		// Reverse the list of reports to post in chronological order
+		reverse(allReports)
 
 		// Loop each report
 	ReportLoop:
