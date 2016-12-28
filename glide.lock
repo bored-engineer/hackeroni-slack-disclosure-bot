@@ -1,8 +1,8 @@
 hash: 2eac225c87efdbe699451fdaf818ae16c28cd7f0c8c0a74b135c44f5e3bdcd61
-updated: 2016-10-25T22:42:05.844025639-07:00
+updated: 2016-12-28T14:52:19.543433171-06:00
 imports:
 - name: github.com/bored-engineer/hackeroni
-  version: bd9a89c189e2800a25912b27566202156733b91d
+  version: 4195c9bab3359fcb2690d26bdd5585aef4e47ea4
   subpackages:
   - legacy
 - name: github.com/bored-engineer/slack-incoming-webhooks
