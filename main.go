@@ -108,9 +108,9 @@ func main() {
 			}
 			reportLink := client.BaseURL.ResolveReference(reportRelativeLink).String()
 
-			// Convert the severity into a human readable value
-			severity := *report.SeverityRating
-			switch severity {
+			// Convert the severity into a human readable value if possible
+			var severity string
+			switch *report.SeverityRating {
 			case hackeroni.ReportSeverityLow:
 				severity = "Low"
 			case hackeroni.ReportSeverityMedium:
@@ -121,16 +121,8 @@ func main() {
 				severity = "Critical"
 			}
 
-			// Build the fallback (IRC) message
-			fallback := fmt.Sprintf("\"%s\"", *report.Title)
-			if severity != "" && severity != hackeroni.ReportSeverityNone {
-				fallback += fmt.Sprintf(" (%s)", severity)
-			}
-			fallback += fmt.Sprintf(" - %s", reportLink)
-
 			// Build the message attachment
 			attachment := slack.Attachment{
-				Fallback:   fallback,
 				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
 				AuthorLink: authorLink,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
@@ -176,6 +168,7 @@ func main() {
 
 			// If the report has a bounty, add it
 			if fullReport.HasBounty != nil && *fullReport.HasBounty {
+				attachment.Fallback = fmt.Sprintf("%s - ", *fullReport.FormattedBounty)
 				attachment.AddField(&slack.Field{
 					Title: "Bounty",
 					Value: *fullReport.FormattedBounty,
@@ -184,13 +177,17 @@ func main() {
 			}
 
 			// If the report has a severity, add it
-			if severity != "" && severity != hackeroni.ReportSeverityNone {
+			if severity != "" {
+				attachment.Fallback = fmt.Sprintf("%s - %s", fallback, severity)
 				attachment.AddField(&slack.Field{
 					Title: "Severity",
 					Value: severity,
 					Short: true,
 				})
 			}
+
+			// Finally append the report URL to the fallback
+			attachment.Fallback += fmt.Sprintf("\"%s\" - %s", *report.Title, reportLink)
 
 			// If we have the exact time it was disclosed add that
 			if fullReport.DisclosedAt != nil {
