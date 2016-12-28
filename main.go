@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
-	"net/url"
 
 	hackeroni "github.com/bored-engineer/hackeroni/legacy"
 	slack "github.com/bored-engineer/slack-incoming-webhooks"
@@ -108,9 +108,29 @@ func main() {
 			}
 			reportLink := client.BaseURL.ResolveReference(reportRelativeLink).String()
 
+			// Convert the severity into a human readable value
+			severity := *report.SeverityRating
+			switch severity {
+			case hackeroni.ReportSeverityLow:
+				severity = "Low"
+			case hackeroni.ReportSeverityMedium:
+				severity = "Medium"
+			case hackeroni.ReportSeverityHigh:
+				severity = "High"
+			case hackeroni.ReportSeverityCritical:
+				severity = "Critical"
+			}
+
+			// Build the fallback (IRC) message
+			fallback := fmt.Sprintf("\"%s\"", *report.Title)
+			if severity != "" && severity != hackeroni.ReportSeverityNone {
+				fallback += fmt.Sprintf(" (%s)", severity)
+			}
+			fallback += fmt.Sprintf(" - %s", reportLink)
+
 			// Build the message attachment
 			attachment := slack.Attachment{
-				Fallback:   fmt.Sprintf("\"%s\" - %s", *report.Title, reportLink),
+				Fallback:   fallback,
 				AuthorName: fmt.Sprintf("%s (%s)", *report.Reporter.Username, *reporter.Name),
 				AuthorLink: authorLink,
 				AuthorIcon: *reporter.ProfilePictureURLs.Best(),
@@ -164,29 +184,10 @@ func main() {
 			}
 
 			// If the report has a severity, add it
-			switch *report.SeverityRating {
-			case hackeroni.ReportSeverityLow:
+			if severity != "" && severity != hackeroni.ReportSeverityNone {
 				attachment.AddField(&slack.Field{
 					Title: "Severity",
-					Value: "Low",
-					Short: true,
-				})
-			case hackeroni.ReportSeverityMedium:
-				attachment.AddField(&slack.Field{
-					Title: "Severity",
-					Value: "Medium",
-					Short: true,
-				})
-			case hackeroni.ReportSeverityHigh:
-				attachment.AddField(&slack.Field{
-					Title: "Severity",
-					Value: "High",
-					Short: true,
-				})
-			case hackeroni.ReportSeverityCritical:
-				attachment.AddField(&slack.Field{
-					Title: "Severity",
-					Value: "Critical",
+					Value: severity,
 					Short: true,
 				})
 			}
