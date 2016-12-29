@@ -80,7 +80,7 @@ func main() {
 
 		// Reverse the list of reports to post in chronological order
 		log.Printf("Got list of %d reports", len(allReports))
-		reverse(allReports)
+		//reverse(allReports)
 		log.Printf("Got reverse list %d of reports", len(allReports))
 
 		// Loop each report
