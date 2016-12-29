@@ -79,7 +79,9 @@ func main() {
 		}
 
 		// Reverse the list of reports to post in chronological order
+		log.Printf("Got list of %d reports", len(allReports))
 		reverse(allReports)
+		log.Printf("Got reverse list %d of reports", len(allReports))
 
 		// Loop each report
 	ReportLoop:
@@ -87,6 +89,7 @@ func main() {
 			// Check if we've seen the report already, if so skip it
 			_, seen := cache.Get(*report.ID)
 			if seen {
+				log.Printf("Already seen report: %v", *report.ID)
 				continue
 			}
 
@@ -211,6 +214,7 @@ func main() {
 			}
 
 			// Post the actual message
+			log.Printf("Posting: %v", attachment)
 			err = api.Post(&slack.Payload{
 				Username:    fmt.Sprintf("%s Disclosed", *report.Team.Profile.Name),
 				IconURL:     *report.Team.ProfilePictureURLs.Best(),
@@ -222,6 +226,7 @@ func main() {
 			}
 
 			// Add to cache
+			log.Printf("Adding %v to cache", *report.ID)
 			cache.Add(*report.ID, true)
 		}
 	}
