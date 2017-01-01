@@ -197,7 +197,7 @@ func main() {
 
 			// If the report has a severity, add it
 			if severity != "" {
-				attachment.Fallback = fmt.Sprintf("%s - %s", attachment.Fallback, severity)
+				attachment.Fallback = fmt.Sprintf("%s %s - ", attachment.Fallback, severity)
 				attachment.AddField(&slack.Field{
 					Title: "Severity",
 					Value: severity,
