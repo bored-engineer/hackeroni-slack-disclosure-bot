@@ -123,15 +123,17 @@ func main() {
 
 			// Convert the severity into a human readable value if possible
 			var severity string
-			switch *report.SeverityRating {
-			case hackeroni.ReportSeverityLow:
-				severity = "Low"
-			case hackeroni.ReportSeverityMedium:
-				severity = "Medium"
-			case hackeroni.ReportSeverityHigh:
-				severity = "High"
-			case hackeroni.ReportSeverityCritical:
-				severity = "Critical"
+			if report.SeverityRating != nil {
+				switch *report.SeverityRating {
+				case hackeroni.ReportSeverityLow:
+					severity = "Low"
+				case hackeroni.ReportSeverityMedium:
+					severity = "Medium"
+				case hackeroni.ReportSeverityHigh:
+					severity = "High"
+				case hackeroni.ReportSeverityCritical:
+					severity = "Critical"
+				}
 			}
 
 			// Build the message attachment
