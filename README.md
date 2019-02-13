@@ -4,11 +4,10 @@ A [Slack](https://slack.com) bot that posts a message everytime a [HackerOne](ht
 ![message](https://cloud.githubusercontent.com/assets/541842/21532083/789e86e0-cd12-11e6-9b20-21a9114b99cc.png)
 
 ## Installation
-The bot relies on [uber-go/hackeroni](https://github.com/uber-go/hackeroni) for HackerOne integration (`legacy` package) and [monochromegane/slack-incoming-webhooks](https://github.com/monochromegane/slack-incoming-webhooks) for Slack integration.
+The bot relies on [bored-engineer/hackeroni-ql](https://github.com/bored-engineer/hackeroni-ql) for HackerOne integration via GraphQL and [monochromegane/slack-incoming-webhooks](https://github.com/monochromegane/slack-incoming-webhooks) for Slack integration.
 
-The bot's dependancies can be installed via [glide](https://glide.sh) and built using the following commands:
+The bot can be built using the following command:
 ```shell
-glide install
 go build
 ```
 
