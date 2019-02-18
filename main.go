@@ -36,7 +36,7 @@ var bootstrapQuery = `{
   ) {
     edges {
       node {
-        ... on PubliclyDisclosed {
+        ... on Disclosed {
           __typename
           report {
             disclosed_at
@@ -64,7 +64,7 @@ var query = `query($since: DateTime) {
   ) {
     edges {
       node {
-        ... on PubliclyDisclosed {
+        ... on Disclosed {
           __typename
           severity_rating
           report {
@@ -119,7 +119,7 @@ func main() {
 	securityIcon := *bootstrapResp.Team.ProfilePicture
 
 	// Extract the most recent disclosure time
-	disclosedSince := bootstrapResp.HacktivityItems.Edges[0].Node.PubliclyDisclosed.Report.DisclosedAt.Add(time.Second)
+	disclosedSince := bootstrapResp.HacktivityItems.Edges[0].Node.Disclosed.Report.DisclosedAt.Add(time.Second)
 
 	// Poll for new hacktivity every interval
 	for range time.Tick(interval) {
@@ -133,15 +133,23 @@ func main() {
 			log.Fatal(err)
 		}
 
+		// If we got no items, bail
+		if resp.HacktivityItems == nil || resp.HacktivityItems.Edges == nil {
+			continue
+		}
+
 		// If we got values, set disclosedAt to the last one (newest)
 		if len(resp.HacktivityItems.Edges) > 0 {
 			lastEdge := resp.HacktivityItems.Edges[len(resp.HacktivityItems.Edges)-1]
-			disclosedSince = lastEdge.Node.PubliclyDisclosed.Report.DisclosedAt.Add(time.Second)
+			if lastEdge.Node.Disclosed.Report == nil {
+				continue
+			}
+			disclosedSince = lastEdge.Node.Disclosed.Report.DisclosedAt.Add(time.Second)
 		}
 
 		// For each report, post it
 		for _, edge := range resp.HacktivityItems.Edges {
-			pd := edge.Node.PubliclyDisclosed
+			pd := edge.Node.Disclosed
 
 			// Convert the severity into a human readable value if possible
 			var severity string
