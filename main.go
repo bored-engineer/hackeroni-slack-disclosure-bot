@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strconv"
 	"fmt"
 	"log"
 	"os"
@@ -22,9 +23,10 @@ var bootstrapQuery = `{
   }
   hacktivity_items(
     secure_order_by: {
-      field: latest_disclosable_activity_at, 
-      direction: DESC
-    }, 
+      latest_disclosable_activity_at: {
+        _direction: DESC,
+      }
+    }
     where: {
       report: {
         disclosed_at: {
@@ -51,9 +53,10 @@ var bootstrapQuery = `{
 var query = `query($since: DateTime) {
   hacktivity_items(
     secure_order_by: {
-      field: latest_disclosable_activity_at, 
-      direction: ASC
-  	}, 
+      latest_disclosable_activity_at: {
+        _direction: DESC,
+      }
+    }
     where: {
       report: {
         disclosed_at: {
@@ -67,27 +70,25 @@ var query = `query($since: DateTime) {
         ... on Disclosed {
           __typename
           severity_rating
+          currency
+          total_awarded_amount
           report {
-          	_id
+            _id
             url
             title
             substate
-            bounties {
-              awarded_currency
-              awarded_amount
-            }
             disclosed_at
           }
           team {
             url
             name
-          	profile_picture(size: large)
+            profile_picture(size: large)
           }
           reporter {
             name
             username
             url
-          	profile_picture(size: large)
+            profile_picture(size: large)
           }
         }
       }
@@ -204,10 +205,9 @@ func main() {
 			}
 
 			// If the report has a bounty, add it
-			if len(pd.Report.Bounties) > 0 {
-				// TODO: This isn't great if there are multiple bounties
-				bounty := pd.Report.Bounties[0]
-				formattedBounty := *bounty.AwardedAmount + " " + *bounty.AwardedCurrency
+			if pd.TotalAwardedAmount != nil {
+				formattedBounty := strconv.FormatFloat(*pd.TotalAwardedAmount, 'f', 0, 64)
+				formattedBounty += " " + *pd.Currency
 				attachment.Fallback = formattedBounty + " - "
 				attachment.AddField(&slack.Field{
 					Title: "Bounty",
