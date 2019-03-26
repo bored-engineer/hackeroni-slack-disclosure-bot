@@ -54,7 +54,7 @@ var query = `query($since: DateTime) {
   hacktivity_items(
     secure_order_by: {
       latest_disclosable_activity_at: {
-        _direction: DESC,
+        _direction: ASC,
       }
     }
     where: {
