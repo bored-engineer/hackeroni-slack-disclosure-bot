@@ -120,6 +120,7 @@ func main() {
 	securityIcon := *bootstrapResp.Team.ProfilePicture
 
 	// Extract the most recent disclosure time
+	log.Printf("NIL DEBUG: %+v\n", bootstrapResp)
 	disclosedSince := bootstrapResp.HacktivityItems.Edges[0].Node.Disclosed.Report.DisclosedAt.Add(time.Second)
 
 	// Poll for new hacktivity every interval
@@ -142,7 +143,8 @@ func main() {
 		// If we got values, set disclosedAt to the last one (newest)
 		if len(resp.HacktivityItems.Edges) > 0 {
 			lastEdge := resp.HacktivityItems.Edges[len(resp.HacktivityItems.Edges)-1]
-			if lastEdge.Node.Disclosed.Report == nil {
+			if lastEdge == nil || lastEdge.Node == nil || lastEdge.Node.Disclosed == nil || lastEdge.Node.Disclosed.Report == nil {
+				log.Printf("NIL DEBUG: %+v\n", resp.HacktivityItems)
 				continue
 			}
 			disclosedSince = lastEdge.Node.Disclosed.Report.DisclosedAt.Add(time.Second)
