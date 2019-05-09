@@ -34,15 +34,22 @@ var bootstrapQuery = `{
         }
        }
       }, 
-      first: 1
+      first: 25
   ) {
     edges {
       node {
+        __typename
         ... on Disclosed {
           __typename
-          report {
-            disclosed_at
-          }
+          latest_disclosable_activity_at
+        }
+        ... on HackerPublished {
+          __typename
+          latest_disclosable_activity_at
+        }
+        ... on Undisclosed {
+          __typename
+          latest_disclosable_activity_at
         }
       }
     }
@@ -67,6 +74,7 @@ var query = `query($since: DateTime) {
   ) {
     edges {
       node {
+      	__typename
         ... on Disclosed {
           __typename
           severity_rating
@@ -120,8 +128,19 @@ func main() {
 	securityIcon := *bootstrapResp.Team.ProfilePicture
 
 	// Extract the most recent disclosure time
-	log.Printf("NIL DEBUG: %+v\n", bootstrapResp)
-	disclosedSince := bootstrapResp.HacktivityItems.Edges[0].Node.Disclosed.Report.DisclosedAt.Add(time.Second)
+	var disclosedSince time.Time
+	for _, edge := range bootstrapResp.HacktivityItems.Edges {
+		if edge.TypeName__ == "Disclosed" {
+			disclosedSince = edge.Node.Disclosed.LatestDisclosableActivityAt.Add(time.Second)
+			break
+		} else if edge.TypeName__ == "HackerPublished" {
+			disclosedSince = edge.Node.HackerPublished.LatestDisclosableActivityAt.Add(time.Second)
+			break
+		} else if edge.TypeName__ == "Undisclosed" {
+			disclosedSince = edge.Node.Undisclosed.LatestDisclosableActivityAt.Add(time.Second)
+			break
+		}
+	}
 
 	// Poll for new hacktivity every interval
 	for range time.Tick(interval) {
@@ -144,7 +163,6 @@ func main() {
 		if len(resp.HacktivityItems.Edges) > 0 {
 			lastEdge := resp.HacktivityItems.Edges[len(resp.HacktivityItems.Edges)-1]
 			if lastEdge == nil || lastEdge.Node == nil || lastEdge.Node.Disclosed == nil || lastEdge.Node.Disclosed.Report == nil {
-				log.Printf("NIL DEBUG: %+v\n", resp.HacktivityItems)
 				continue
 			}
 			disclosedSince = lastEdge.Node.Disclosed.Report.DisclosedAt.Add(time.Second)
@@ -153,7 +171,11 @@ func main() {
 		// For each report, post it
 		for _, edge := range resp.HacktivityItems.Edges {
 			pd := edge.Node.Disclosed
-
+			// There are other hacktivity items than disclosed, skip them
+			if pd == nil {
+				continue
+			}
+			
 			// Convert the severity into a human readable value if possible
 			var severity string
 			if pd.SeverityRating != nil {
