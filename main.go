@@ -130,13 +130,13 @@ func main() {
 	// Extract the most recent disclosure time
 	var disclosedSince time.Time
 	for _, edge := range bootstrapResp.HacktivityItems.Edges {
-		if edge.TypeName__ == "Disclosed" {
+		if edge.Node.TypeName__ == "Disclosed" {
 			disclosedSince = edge.Node.Disclosed.LatestDisclosableActivityAt.Add(time.Second)
 			break
-		} else if edge.TypeName__ == "HackerPublished" {
+		} else if edge.Node.TypeName__ == "HackerPublished" {
 			disclosedSince = edge.Node.HackerPublished.LatestDisclosableActivityAt.Add(time.Second)
 			break
-		} else if edge.TypeName__ == "Undisclosed" {
+		} else if edge.Node.TypeName__ == "Undisclosed" {
 			disclosedSince = edge.Node.Undisclosed.LatestDisclosableActivityAt.Add(time.Second)
 			break
 		}
