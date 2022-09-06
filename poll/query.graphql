@@ -1,0 +1,33 @@
+query ($since: DateTime) {
+  hacktivity_items(
+    secure_order_by: { latest_disclosable_activity_at: { _direction: ASC } }
+    where: { report: { disclosed_at: { _gt: $since } } }
+  ) {
+    nodes {
+      ... on Disclosed {
+        id
+        severity_rating
+        currency
+        total_awarded_amount
+        report {
+          _id
+          url
+          title
+          substate
+          disclosed_at
+        }
+        team {
+          url
+          name
+          profile_picture(size: xtralarge)
+        }
+        reporter {
+          name
+          username
+          url
+          profile_picture(size: xtralarge)
+        }
+      }
+    }
+  }
+}
