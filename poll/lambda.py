@@ -24,7 +24,7 @@ def refresh_csrf(session: requests.Session):
     session.headers["x-csrf-token"] = csrf_token
 
 
-@tracer.capture_method(capture_response=False)
+@tracer.capture_method
 def fetch_hacktivity(session: requests.Session, since: datetime) -> List[Any]:
     """Scrape the hacktivity since a given datetime."""
     response = session.post(
@@ -50,11 +50,12 @@ def lambda_handler(event: dict, context: LambdaContext):
         since = datetime.utcnow() - timedelta(minutes=4)
         # Fetch all events since that time (already sorted)
         for event in fetch_hacktivity(session, since):
+            print(f"event: {json.dumps(event)}")
             # Submit to SQS using a de-duplication ID
             sqs.send_message(
                 QueueUrl=os.environ["SQS_QUEUE"],
                 MessageBody=json.dumps(event),
-                MessageDeduplicationId=event["id"],
+                MessageDeduplicationId=event.get("report", {}).get("_id"),
                 MessageGroupId="hacktivity",
             )
 
