@@ -37,6 +37,7 @@ def fetch_hacktivity(session: requests.Session, since: datetime) -> List[Any]:
         },
     )
     response.raise_for_status()
+    print(f"response: {response.text}")
     return response.json()["data"]["hacktivity_items"]["nodes"]
 
 
@@ -50,7 +51,6 @@ def lambda_handler(event: dict, context: LambdaContext):
         since = datetime.utcnow() - timedelta(minutes=4)
         # Fetch all events since that time (already sorted)
         for event in fetch_hacktivity(session, since):
-            print(f"event: {json.dumps(event)}")
             # Submit to SQS using a de-duplication ID
             sqs.send_message(
                 QueueUrl=os.environ["SQS_QUEUE"],
