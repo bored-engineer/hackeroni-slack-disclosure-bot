@@ -38,7 +38,9 @@ def fetch_hacktivity(session: requests.Session, since: datetime) -> List[Any]:
     )
     response.raise_for_status()
     print(f"response: {response.text}")
-    return response.json()["data"]["hacktivity_items"]["nodes"]
+    nodes = response.json()["data"]["hacktivity_items"]["nodes"]
+    nodes = filter(lambda node: node["__typename"] == "Disclosed", nodes)
+    return list(nodes)
 
 
 @tracer.capture_lambda_handler

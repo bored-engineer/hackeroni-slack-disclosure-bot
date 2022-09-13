@@ -4,6 +4,7 @@ query ($since: DateTime) {
     where: { report: { disclosed_at: { _gt: $since } } }
   ) {
     nodes {
+      __typename
       ... on Disclosed {
         id
         severity_rating
