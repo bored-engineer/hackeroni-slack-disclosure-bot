@@ -1,0 +1,5 @@
+app = "hackeroni-slack-disclosure-bot"
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+  buildpacks = ["gcr.io/paketo-buildpacks/python"]
